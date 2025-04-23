@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zettelkasten-tracker-configmap
+data:
+  DB_HOST: quantified-self-db.T-Py-T.net
+  DB_NAME: zettelkasten-tracker

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: zktracker.T-Py-T.net
+  name: zettelkasten-tracker
+spec:
+  ingressClassName: cilium
+  rules:
+    - host: zktracker.T-Py-T.net
+      http:
+        paths:
+          - backend:
+              service:
+                name: zettelkasten-tracker
+                port:
+                  number: 3009
+            path: /
+            pathType: Prefix
