@@ -1,3 +1,18 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform/terraform.tfstate
+
+# Python
+.venv/
+
+# Editor
+.vscode/
+
+# Bak
+*.bak
+
 private/
 .DS_Store
 
