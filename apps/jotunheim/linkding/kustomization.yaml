@@ -7,6 +7,8 @@ resources:
   # - scheduled-backup-cnpg.yaml
   - ../../base/linkding/
   - cloudflare.yaml
+  - canary.yaml
+  - istio.yaml
   # - networkpolicy.yaml
 
 patches:

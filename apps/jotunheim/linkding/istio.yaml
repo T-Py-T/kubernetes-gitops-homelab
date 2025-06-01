@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: linkding
+  namespace: linkding
+spec:
+  host: linkding
+  subsets:
+    - name: stable
+      labels:
+        version: stable
+    - name: canary
+      labels:
+        version: canary
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: linkding
+  namespace: linkding
+spec:
+  hosts:
+    - linkding.{{ PLACEHOLDER_DOMAIN }}
+  gateways:
+    - istio-system/istio-ingressgateway
+  http:
+    - route:
+        - destination:
+            host: linkding
+            subset: stable
+          weight: 100

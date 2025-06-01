@@ -6,3 +6,9 @@ resources:
   - external-secrets
   - local-path
   - renovate
+  #newly added
+  - istio
+  - elk
+  - kyverno
+  - vault
+  - flagger

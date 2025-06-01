@@ -1,0 +1,4 @@
+resources:
+  - repository.yaml
+  - elasticsearch-release.yaml
+  - kibana-release.yaml

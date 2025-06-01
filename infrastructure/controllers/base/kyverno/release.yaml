@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kyverno
+  namespace: kyverno
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: kyverno
+      version: 3.1.5 # Use the latest stable compatible with your cluster
+      sourceRef:
+        kind: HelmRepository
+        name: kyverno
+        namespace: flux-system
+  values:
+    replicaCount: 2
+    admissionController:
+      replicaCount: 2
+    backgroundController:
+      replicaCount: 1
+    cleanupController:
+      replicaCount: 1

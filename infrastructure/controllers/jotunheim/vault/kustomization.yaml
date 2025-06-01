@@ -1,0 +1,7 @@
+resources:
+  - ../../base/vault
+  
+configMapGenerator:
+  - name: vault-values
+    files:
+      - values.yaml

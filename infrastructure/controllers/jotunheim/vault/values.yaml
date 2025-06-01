@@ -1,0 +1,7 @@
+injector:
+  enabled: false
+server:
+  dev:
+    enabled: true  # ✅ Use for now, switch to full Raft later
+  dataStorage:
+    enabled: false

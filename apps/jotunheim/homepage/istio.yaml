@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  host: homepage
+  subsets:
+    - name: stable
+      labels:
+        version: stable
+    - name: canary
+      labels:
+        version: canary
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  hosts:
+    - homepage.{{ PLACEHOLDER_DOMAIN }}
+  gateways:
+    - istio-system/istio-ingressgateway
+  http:
+    - route:
+        - destination:
+            host: homepage
+            subset: stable
+          weight: 100
