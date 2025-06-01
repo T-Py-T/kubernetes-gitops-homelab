@@ -5,3 +5,5 @@ resources:
   - ../../base/n8n/
   - configmap.yaml
   - ingress.yaml
+  - canary.yaml
+  - istio.yaml

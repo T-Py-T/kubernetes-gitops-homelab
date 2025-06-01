@@ -15,13 +15,13 @@ The purpose of my homelab is the place where I can try out and learn new things.
 | Cluster Management | Talos, Omni | - | Cluster API, Federation |
 | Networking | Cilium, Cloudflare | Istio | OpenTelemetry |
 | Observability | Prometheus, Grafana | ELK Stack | Thanos |
-| Security | External Secrets | Kyverno, Trivy, Vault | - |
+| Security | External Secrets | Kyverno, Vault | - |
 | Storage | CloudNativePG, Synology CSI | OpenEBS | - |
 | GitOps | FluxCD, GitHub Actions | - | Flagger |
 
 ### Active Projects
 
-1. **Service Mesh Implementation** 
+1. **Service Mesh Implementation**
    - Istio deployment for multi-cluster communication
    - Service discovery and load balancing
    - Traffic management with intelligent routing
@@ -33,10 +33,6 @@ The purpose of my homelab is the place where I can try out and learn new things.
      - Pod Security Standards enforcement
      - Resource quotas and limits
      - Image registry restrictions
-   - Trivy for vulnerability management:
-     - Container scanning in CI/CD
-     - Node security scanning
-     - SBOM generation
    - Vault for secrets:
      - PKI infrastructure
      - Dynamic database credentials
@@ -102,13 +98,13 @@ The purpose of my homelab is the place where I can try out and learn new things.
 
 ### Cluster Design
 
-I use [Talos Linux](https://www.talos.dev/) to set up my machines. I prefer Talos because it is lightweight and minimal, and provides production grade security right out of the box. After running plain Talos for over a year, I switched to using [Sidero Omni](https://www.siderolabs.com/platform/saas-for-kubernetes/) to manage my Talos clusters. Omni allows me to freely add nodes and destroy them, scaling my clusters as desired.
+I use [Talos Linux](https://www.talos.dev/). Talos is lightweight and minimal, and provides production grade security by default. After running plain Talos for a while, I switched to using [Sidero Omni](https://www.siderolabs.com/platform/saas-for-kubernetes/) to manage my Talos clusters. Omni allows me to freely add nodes and destroy them, scaling my clusters as desired.
 
 I am currently testing out a new architecture of single-node clusters where the workloads are scheduled on the control plane. A wise man taught me the phrase "no in-place upgrades", and I desire to move in that direction. Instead of one big cluster, I'm now running several. Omni makes this extremely easy.
 
 | Number | Name | Description |
-|:------:|:-----|:-----------|
-| 1 | Jotunheim | Contains all end-user applications. Stateless, fully provisioned from code. Can be torn down and spun up within minutes on different hardware. |
+|:------:|:-----|:-----------:|
+| 1 | Prod | Contains all end-user applications. Stateless, fully provisioned from code. Can be torn down and spun up within minutes on different hardware. |
 | 2 | Data | Contains all my databases & state. Multi-node. Can be fully restored from Blob storage. |
 | 3 | Moria | Private cluster provisioned from private repository. |
 

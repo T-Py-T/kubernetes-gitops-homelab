@@ -1,4 +1,4 @@
-apps/jotunheim/homepage/canary.yamlapiVersion: flagger.app/v1beta1
+apps/prod/homepage/canary.yamlapiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
   name: homepage

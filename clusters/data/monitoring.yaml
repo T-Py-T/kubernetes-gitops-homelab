@@ -29,5 +29,5 @@ spec:
 #   sourceRef:
 #     kind: GitRepository
 #     name: flux-system
-#   path: ./monitoring/configs/jotunheim
+#   path: ./monitoring/configs/prod
 #   prune: true
