@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: wallabag
+  namespace: wallabag
+spec:
+  host: wallabag
+  subsets:
+    - name: stable
+      labels:
+        version: stable
+    - name: canary
+      labels:
+        version: canary
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: wallabag
+  namespace: wallabag
+spec:
+  hosts:
+    - wallabag.{{ PLACEHOLDER_DOMAIN }}
+  gateways:
+    - istio-system/istio-ingressgateway
+  http:
+    - route:
+        - destination:
+            host: wallabag
+            subset: stable
+          weight: 100

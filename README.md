@@ -105,8 +105,8 @@ I am currently testing out a new architecture of single-node clusters where the 
 | Number | Name | Description |
 |:------:|:-----|:-----------:|
 | 1 | Prod | Contains all end-user applications. Stateless, fully provisioned from code. Can be torn down and spun up within minutes on different hardware. |
-| 2 | Data | Contains all my databases & state. Multi-node. Can be fully restored from Blob storage. |
-| 3 | Moria | Private cluster provisioned from private repository. |
+| 2 | Dev | Contains all end-user applications. Stateless, fully provisioned from code. Can be torn down and spun up within minutes on different hardware. |
+| 3 | Data | Contains all my databases & state. Multi-node. Can be fully restored from Blob storage. |
 
 ### Hardware Setup
 

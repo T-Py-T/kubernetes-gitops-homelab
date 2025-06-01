@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cilium
+  - external-dns
+  - external-secrets
+  - local-path
+  - renovate
+  #newly added
+  - istio
+  - elk
+  - kyverno
+  - vault
+  - flagger

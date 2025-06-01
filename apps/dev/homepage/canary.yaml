@@ -1,0 +1,27 @@
+apps/prod/homepage/canary.yamlapiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  provider: istio
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: homepage
+  service:
+    port: 80
+    gateways:
+      - istio-system/istio-ingressgateway
+    hosts:
+      - homepage.{{ PLACEHOLDER_DOMAIN }}
+  analysis:
+    interval: 1m
+    threshold: 5
+    maxWeight: 50
+    stepWeight: 10
+    metrics:
+      - name: request-success-rate
+        interval: 30s
+        thresholdRange:
+          min: 99
