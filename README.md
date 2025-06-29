@@ -102,47 +102,26 @@ For the Dev and Staging cluster I am looking at SinglNode Clusters to allow me t
 
 ## Deployment Strategy
 
-## GitOps Workflow
+### Multi-Repository GitOps Workflow
 
-### Multi-Repository Pattern
+#### Cluster lifecycle (GitOps Focused) - Deployment Order (Top → Bottom)**
 
-``` sh
-Deployment Order (Top → Bottom)
-├──  homelab-gitops     ← ArgoCD bootstrap + cluster scripts
-├── homelab-platform   ← Core infrastructure (Istio, Vault, Keycloak)  
-├──  homelab-monitoring ← Observability (Prometheus, Grafana, ELK)
-└──  homelab-apps      ← End-user applications
-```
+Each repo managed as separate ArgoCD project with app-of-apps pattern for complete production infrastructure release cycle management.
 
-Benefits of This Approach
+| Logo | Purpose|
+|:----:|:-----|
+| [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)  | ArgoCD bootstrap + cluster scripts |
+| [homelab-platform](https://github.com/T-Py-T/homelab-platform) | Core infrastructure (Istio, Vault, Keycloak) |
+| [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring) | Observability (Prometheus, Grafana, ELK) |
+| [homelab-apps](https://github.com/T-Py-T/homelab-applications) | End-user applications |
+
+#### Benefits of This Approach
 
 - Dependency Control: Platform services deploy before apps that need them
 - Team Separation: Different teams can own different repositories
 - Independent Releases: Update monitoring without touching applications
 - Security Boundaries: Separate access controls per repository type
 - Scalability: Add new app repos without touching core infrastructure
-
-## Why This Approach?
-
-**Multi-Repo Pattern**: Team isolation, independent releases, clear boundaries  
-**Production Ready**: Security-first, disposable clusters, comprehensive automation
-
-### Repository Orchestration
-
-Each repo managed as separate ArgoCD project with app-of-apps pattern for complete production infrastructure release cycle management.
-
-#### Multi-Repository GitOps Pattern
-
-Cluster lifecycle (GitOps Focused) - In order top to bottom
-
-``` sh
-├── [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)          #  ArgoCD bootstrap + cluster scripts
-├── [homelab-platform](https://github.com/T-Py-T/homelab-platform)      #  Core infrastructure (Istio, Vault, Keycloak)
-├── [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring)  #  Observability stack (Prometheus, Grafana, logging)
-└── [homelab-apps](https://github.com/T-Py-T/homelab-applications)      #  End-user applications
-```
-
-**Benefits:** Dependency control, team separation, independent release cycles
 
 ## 🔧 Technology Stack
 
