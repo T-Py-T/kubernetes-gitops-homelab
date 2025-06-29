@@ -1,50 +1,128 @@
-# 🏠 Homelab - K3s GitOps Platform
+# Homelab - K3s GitOps Platform
 
-## 📖 Overview
+ **Complete GitOps platform on K3s** - Deploy production-ready infrastructure in minutes with enterprise-grade security, monitoring, and automation.
 
-Complete GitOps platform on K3s - deploy production-ready infrastructure in minutes.
+---
 
-**Multi-Repository Pattern**: Separate repos for platform, monitoring, and applications - all orchestrated by ArgoCD projects using app-of-apps patterns for production infrastructure release cycles. This cluster helps with backup strategies, security, scalability and the ease of deployment and maintenance.
+## Overview
 
-I use this these cluster for testing new services, and conainter hardening for DevSecOps, using platforms like:
+This homelab implements a **multi-repository GitOps pattern** with separate repos for platform, monitoring, and applications - all orchestrated by ArgoCD using app-of-apps patterns. Perfect for testing new services, container hardening, and DevSecOps practices.
 
-- [Repo1](https://repo1.dso.mil/) for managed DoD approved charts and apps.
-- [Ironbank](https://ironbank.dso.mil/) a public container registry of hardened images.
+### Military-Grade Security
 
-## 📊 Current State
+I use these cluster for testing new services, and conainter hardening for DevSecOps, using platforms like:
 
-### Implementation Status
+- [**Repo1**](https://repo1.dso.mil/) - DoD approved charts and applications
+- [**Ironbank**](https://ironbank.dso.mil/) - Hardened container registry
 
-| Category | Current | In Progress | Future |
-|:---------|:--------|:------------|:-------|
-| **Platform** | K3s + Cilium + ArgoCD + Istio + Vault + Keycloak + ELK + External Secrets + Kyverno | Extended cluster policies | Cert Manager + Cloudflare |
-| **Monitoring** | Prometheus + Grafana | EFK Stack | Thanos + OpenTelemetry  |
-| **Applications** | Commafeed + Homepage + Linkding + N8N + Wallabag | App Deployment Patterns | Progressive Delivery |
+---
 
-## 🏗️ Architecture Design
+## Architecture Overview
 
-### Hardware Setup
+### Cluster Strategy: "No In-Place Upgrades"
 
-- I use a combination of refurbished mini PCs:
-- These  are great because they are small and cheap to buy when you get them refurbished from a reseller.
-- They are about $100-150 USD each. The only problem is that the for larger workloads, the base RAM needs to be upgraded adding additional cost
+Instead of one monolithic cluster, I run **multiple single-purpose clusters** for better isolation, security, and maintainability. Current approach is HA(High Availability, Fault tolerant) clusters.
 
-#### Prod Cluster - PLANNED
+For the Dev and Staging cluster I am looking at SinglNode Clusters to allow me to quickly brink up and test a new version cluster OS (Like Talos or K3D). I can test a newer cluster OS and validate before migrating. and have my fallback previous cluster. 
 
-- Control Plane - HP ELITEDESK 800 G5 MINI i5-6400T/16GB/240GB SSD - x3
-- Worker Nodes - HP ELITEDESK 800 G2 MINI i5-6400T/16GB/240GB SSD - x6
+| Cluster | Purpose | Status | Nodes |
+|:--------|:--------|:-------|:------|
+| **Prod** | End-user applications (stateless) | 🔄 Planned (OpenShift) | 3 control + 6 workers |
+| **Staging** | Application testing & validation | ✅ Running (Talos/Omni) | 2 control + 4 workers |
+| **Data** | Databases & persistent storage | 🔄 Planned (K3s) | 2 control + 2 workers |
+| **Dev** | Development & container testing | ✅ Running (K3s) | 1 control + 2 workers |
 
-#### Staging Cluster - Installed
+### Why This Design?
 
-- Control Plane - HP ELITEDESK 800 G5 MINI i5-6400T/16GB/240GB SSD - x2
-- Worker Nodes - HP ELITEDESK 800 G2 MINI i3-6100T/8GB/240GB SSD - x4
+- **Blast radius containment** - Issues don't affect other environments
+- **Independent scaling** - Right-size each cluster for its workload
+- **Easy disaster recovery** - Rebuild clusters from code, restore data from backups
+- **Technology diversity** - Test different platforms (OpenShift, Talos, K3s)
 
-#### Dev Cluster - Installed
+---
 
-- Control Plane - HP ELITEDESK 800 G5 MINI i5-6400T/16GB/240GB SSD - x1
-- Worker Nodes - HP ELITEDESK 800 G2 MINI i3-6100T/8GB/240GB SSD - x2
+## Hardware Setup
 
-## ⚙️ Deployment Strategy
+**Philosophy**: Cheap, small, upgradeable refurbished business PCs
+
+### Base Hardware Stack
+
+- **HP EliteDesk 800 G5 Mini** (Control Planes): i5-6400T, 16GB RAM, 240GB SSD
+- **HP EliteDesk 800 G2 Mini** (Workers): i3-6100T, 8-16GB RAM, 240GB SSD
+- **Cost**: ~$100-150 per node (refurbished)
+- **Upgrade path**: RAM easily expandable for larger workloads
+
+### Cluster Specifications
+
+<details>
+<summary><strong> Production Cluster (Planned - OpenShift)</strong></summary>
+
+**Purpose**: Mission-critical applications with enterprise support
+
+- **Control Plane**: 3x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
+- **Workers**: 6x HP EliteDesk 800 G2 Mini (i5-6400T/16GB/240GB)
+- **Features**: HA, automated failover, enterprise monitoring
+
+</details>
+
+<details>
+<summary><strong> Staging Cluster (Running - Talos/Omni)</strong></summary>
+
+**Purpose**: Pre-production testing and validation
+
+- **Control Plane**: 2x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
+- **Workers**: 4x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
+- **Features**: Immutable OS, declarative configuration
+
+</details>
+
+<details>
+<summary><strong> Data Cluster (Planned - K3s)</strong></summary>
+
+**Purpose**: Centralized databases and shared storage
+
+- **Control Plane**: 2x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
+- **Workers**: 2x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
+- **Storage**: Synology DS224+ NAS with CSI integration
+
+</details>
+
+<details>
+<summary><strong> Dev Cluster (Running - K3s)</strong></summary>
+
+**Purpose**: Development, testing, and experimentation
+
+- **Control Plane**: 1x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
+- **Workers**: 2x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
+- **Features**: Lightweight, fast iteration, disposable workloads
+
+</details>
+
+---
+
+## Deployment Strategy
+
+## GitOps Workflow
+
+### Multi-Repository Pattern
+
+Deployment Order (Top → Bottom)
+├──  homelab-gitops     ← ArgoCD bootstrap + cluster scripts
+├── homelab-platform   ← Core infrastructure (Istio, Vault, Keycloak)  
+├──  homelab-monitoring ← Observability (Prometheus, Grafana, ELK)
+└──  homelab-apps      ← End-user applications
+Benefits of This Approach
+
+- Dependency Control: Platform services deploy before apps that need them
+- Team Separation: Different teams can own different repositories
+- Independent Releases: Update monitoring without touching applications
+- Security Boundaries: Separate access controls per repository type
+- Scalability: Add new app repos without touching core infrastructure
+
+## Why This Approach?
+
+**Multi-Repo Pattern**: Team isolation, independent releases, clear boundaries  
+**Production Ready**: Security-first, disposable clusters, comprehensive automation
 
 ### Repository Orchestration
 
@@ -53,10 +131,10 @@ Each repo managed as separate ArgoCD project with app-of-apps pattern for comple
 #### Multi-Repository GitOps Pattern
 
 Cluster lifecycle (GitOps Focused) - In order top to bottom
-├── [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)          # 🎯 ArgoCD bootstrap + cluster scripts
-├── [homelab-platform](https://github.com/T-Py-T/homelab-platform)      # 🏗️ Core infrastructure (Istio, Vault, Keycloak)
-├── [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring)  # 📊 Observability stack (Prometheus, Grafana, logging)
-└── [homelab-apps](https://github.com/T-Py-T/homelab-applications)      # 🚀 End-user applications
+├── [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)          #  ArgoCD bootstrap + cluster scripts
+├── [homelab-platform](https://github.com/T-Py-T/homelab-platform)      #  Core infrastructure (Istio, Vault, Keycloak)
+├── [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring)  #  Observability stack (Prometheus, Grafana, logging)
+└── [homelab-apps](https://github.com/T-Py-T/homelab-applications)      #  End-user applications
 
 **Benefits:** Dependency control, team separation, independent release cycles
 
@@ -98,62 +176,33 @@ Cluster lifecycle (GitOps Focused) - In order top to bottom
 | <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wallabag.svg"> | [Wallabag](https://wallabag.org/) | Save articles & posts from the web for storage & reading later |
 | <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/linkding.svg"> | [Linkding](https://github.com/sissbruecker/linkding) | Bookmark manager with tagging and search |
 
-## 🎯 Future Roadmap
 
-## 🌐 Infrastructure Details
+🌟 Future Roadmap
 
-### 🔄 Network Design
-I use [Cilium](https://cilium.io/) as my CNI. I use LoadBalancer IPAM to assign IP addresses to my LoadBalancer services and use Cilium as an ingress controller. This way, I don't need to install and maintain a seperate ingress controller like Traefik, which I used in the past.
+⚙️ Version upgrades
+Using single node clusters to test version updates of each OS provider, K3s, Talos, CRC, etc.
 
-### 💾 Storage Configuration
+🔄 Enhanced Platform
+Cert Manager + Cloudflare: Automated TLS certificate management
+External DNS: Automatic DNS record management for services
+CloudNativePG: PostgreSQL operator for database workloads
 
-I am looking at purchaing a Synology DS224+ as a NAS. Future plan is to use Synology CSI driver to provision Persistent Volumes from my clusters directly on the NAS. I plan to create an NFS share for data that needs to be shared between clusters.
+📊 Advanced Observability
+Thanos: Long-term metrics storage and global query view
+OpenTelemetry: Distributed tracing across all services
 
-### 🔐 Secret Management
+🚀 Production Operations
+Flagger: Automated canary deployments and progressive delivery
+Velero: Comprehensive backup and disaster recovery
+Renovate: Automated dependency updates with testing
 
-[Vault](https://www.hashicorp.com/en/products/vault) - The overall goal of the system is to use hashicorp vault as the method of holding and pulling secrets.
+🤝 **Contributing**
+**Found this helpful? Here's how you can contribute:**
 
-### Enhanced Platform Features
+⭐ Star the repositories if this helped your learning
+🐛 Report issues or suggest improvements
+📖 Share your experience - write about your own homelab journey
+🔀 Fork and adapt for your own needs
 
-- **Cert Manager + Cloudflare**: Automated TLS certificate management
-- **Synology CSI**: Driver for persistent storage from an NFS
-- **External DNS**: Automatic DNS record management
-- **CloudNativePG**: PostgreSQL operator for database workloads
-- **Thanos + OpenTelemetry**: Long-term metrics storage and distributed tracing
 
-### Advanced Operations
-
-- **Cluster API**: Declarative multi-cluster management
-- **Flagger**: Canary deployments and progressive delivery
-- **Velero**: Cluster state backups and disaster recovery
-- **Renovate**: Automated dependency updates
-
-## 🔧 Quick Start
-
-### Prerequisites
-
-- Ansible for cluster provisioning
-- kubectl for cluster management
-- Git for GitOps workflows
-
-### Deploy Platform
-
-```bash
-# 1. Bootstrap ArgoCD
-git clone homelab-gitops && cd homelab-gitops
-./scripts/bootstrap-cluster.sh
-
-# 2. Deploy platform services  
-kubectl apply -f platform-project.yaml
-
-# 3. Add monitoring
-kubectl apply -f monitoring-project.yaml
-
-# 4. Add applications
-kubectl apply -f applications-project.yaml
-```
-
-## 🌟 Why This Approach?
-
-**Multi-Repo Pattern**: Team isolation, independent releases, clear boundaries  
-**Production Ready**: Security-first, disposable clusters, comprehensive automation
+💬 Questions? Open an issue or start a discussion in any of the repository links above!
