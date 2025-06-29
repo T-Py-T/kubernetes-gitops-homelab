@@ -106,11 +106,14 @@ For the Dev and Staging cluster I am looking at SinglNode Clusters to allow me t
 
 ### Multi-Repository Pattern
 
+``` sh
 Deployment Order (Top → Bottom)
 ├──  homelab-gitops     ← ArgoCD bootstrap + cluster scripts
 ├── homelab-platform   ← Core infrastructure (Istio, Vault, Keycloak)  
 ├──  homelab-monitoring ← Observability (Prometheus, Grafana, ELK)
 └──  homelab-apps      ← End-user applications
+```
+
 Benefits of This Approach
 
 - Dependency Control: Platform services deploy before apps that need them
@@ -131,10 +134,13 @@ Each repo managed as separate ArgoCD project with app-of-apps pattern for comple
 #### Multi-Repository GitOps Pattern
 
 Cluster lifecycle (GitOps Focused) - In order top to bottom
+
+``` sh
 ├── [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)          #  ArgoCD bootstrap + cluster scripts
 ├── [homelab-platform](https://github.com/T-Py-T/homelab-platform)      #  Core infrastructure (Istio, Vault, Keycloak)
 ├── [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring)  #  Observability stack (Prometheus, Grafana, logging)
 └── [homelab-apps](https://github.com/T-Py-T/homelab-applications)      #  End-user applications
+```
 
 **Benefits:** Dependency control, team separation, independent release cycles
 
@@ -152,7 +158,7 @@ Cluster lifecycle (GitOps Focused) - In order top to bottom
 
 | Logo | Name | Description |
 |:----:|:-----|:-----------|
-| <img width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/istio.svg"> | [Istio](https://istio.io/) | Service mesh for security, observability, and traffic management |
+| <img width="32" style="filter: invert(51%) sepia(86%) saturate(2331%) hue-rotate(195deg) brightness(97%) contrast(101%);" src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/istio.svg"> | [Istio](https://istio.io/) | Service mesh for security, observability, and traffic management |
 | <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/vault.svg"> | [HashiCorp Vault](https://www.vaultproject.io/) | Secrets management and PKI |
 | <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/keycloak.svg"> | [Keycloak](https://www.keycloak.org/) | Identity and access management |
 | <img width="32" src="https://www.svgrepo.com/download/477066/lock.svg"> | [External Secrets](https://external-secrets.io/) | Vault integration for K8s secrets |
@@ -173,7 +179,7 @@ Cluster lifecycle (GitOps Focused) - In order top to bottom
 | <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/commafeed.svg"> | [Commafeed](https://www.commafeed.com/#/welcome) | Bloat free RSS feed reader |
 | <img width="32" src="https://www.svgrepo.com/download/499807/home-page.svg"> | [Homepage](https://github.com/gethomepage/homepage) | My customized portal to my homelab & internet |
 | <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/n8n.svg"> | [n8n](https://n8n.io/) | Secure, AI-native workflow automation |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wallabag.svg"> | [Wallabag](https://wallabag.org/) | Save articles & posts from the web for storage & reading later |
+| <img width="32" style="filter: invert(54%) sepia(94%) saturate(749%) hue-rotate(359deg) brightness(104%) contrast(101%);" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wallabag.svg"> | [Wallabag](https://wallabag.org/) | Save articles & posts from the web for storage & reading later |
 | <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/linkding.svg"> | [Linkding](https://github.com/sissbruecker/linkding) | Bookmark manager with tagging and search |
 
 
