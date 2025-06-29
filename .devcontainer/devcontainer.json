@@ -13,7 +13,8 @@
   
   "postCreateCommand": ".devcontainer/setup.sh",
   "postAttachCommand": "minikube start",
-  
+
+
   "forwardPorts": [8080],
   "privileged": true
 }
