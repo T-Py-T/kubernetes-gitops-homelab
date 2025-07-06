@@ -1,6 +1,12 @@
 #Ignore in progress items
 **/todo/* 
 
+#IDE Ignore section
+.vscode/
+.cursor/
+.idea/
+.vimrc/
+
 # Terraform
 .terraform/
 *.tfstate
