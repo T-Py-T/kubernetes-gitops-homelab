@@ -1,16 +1,18 @@
-# Kubernetes Homelab: A Repeatable GitOps Platform
+# Kubernetes Homelab: Architecture and Operating Case Study
 
-This repository is the public architecture and operating model for a
+This repository documents the architecture and intended operating model for a
 multi-environment Kubernetes homelab. The point is not the applications it
 runs; the point is the deployment system around them: isolated clusters,
 ordered GitOps reconciliation, security boundaries, observability, and a
 rebuild-first recovery model.
 
-> [!NOTE]
-> Cluster-specific ArgoCD applications, Helm values, hostnames, and live
-> deployment manifests are intentionally kept in private downstream
-> repositories. This public repository documents the reusable engineering
-> decisions without publishing the live environment.
+> [!IMPORTANT]
+> The publication boundary is a new, clean repository initialized from the
+> current sanitized tree. Earlier history in this repository included
+> environment-specific deployment files, so deleting them from the current
+> tree is not a sufficient privacy boundary. Do not publish a branch with that
+> ancestry. Cluster-specific ArgoCD applications, Helm values, hostnames, and
+> live deployment manifests belong only in private downstream repositories.
 
 ## Why this project matters
 
@@ -71,9 +73,11 @@ intended flow is:
 7. Roll back through Git or recreate the cluster when platform state is no
    longer trustworthy.
 
-This is the repeatability contract that the private implementation follows.
-The public repository does not claim current uptime, production traffic, or a
-successful recovery drill without a retained artifact that proves it.
+This is the intended repeatability contract for the private implementation,
+not a claim that every step is currently automated or has completed
+successfully. The public case study does not claim current uptime, production
+traffic, successful reconciliation, or a successful recovery drill without a
+retained sanitized artifact that proves it.
 
 ## Cluster strategy
 
@@ -102,18 +106,35 @@ retaining the previous cluster as the rollback boundary.
 | Policy | Kyverno | Admission-time guardrails expressed as Kubernetes resources |
 | Metrics and logs | Prometheus, Grafana, and Loki/Elastic experiments | Make platform and workload failures inspectable |
 
+## Retained operating record
+
+This case study separates repository evidence from live-cluster claims. The
+retained record supports the evolution of the operating design, but it does not
+prove that a cluster reached or maintained the declared state.
+
+| Date | Retained repository evidence | What it supports | What it does not prove |
+| --- | --- | --- | --- |
+| 2025-06-01 | A desired-state snapshot contained separate cluster, platform, monitoring, and application layers | The design was expressed as versioned deployment configuration | Successful reconciliation, service health, or uptime |
+| 2025-06-25 | The project record documents removal of environment definitions and a move to separate repositories for finer environment control and staged rebuilds | The project adopted a private multi-repository boundary | A completed migration, promotion, or rebuild |
+| 2026-08-02 | The project record marks this case study as historical and identifies the successor project | Later status claims must not be inferred from the earlier configuration | Current cluster state or production operation |
+
+No sanitized deployment logs, test reports, recovery timings, or current
+telemetry are retained here. Accordingly, the deployment contract above is an
+operating runbook to evaluate, while successful reconciliation, promotion, and
+recovery remain unverified outcomes. The next evidence milestone is a
+sanitized, current-version recovery drill with timings, failure criteria, and
+rollback results.
+
 ## What to evaluate
 
-This repository should be judged as a systems-design artifact:
+This repository should be judged as an architecture and operating-model case
+study:
 
 - Are ownership and security boundaries explicit?
 - Is the deployment order deterministic?
 - Can an environment be recreated without undocumented console work?
 - Are validation and rollback steps part of the design?
 - Are planned capabilities clearly separated from retained operating evidence?
-
-The next evidence milestone is a sanitized, current-version recovery drill with
-timings, failure criteria, and rollback results.
 
 ## Related public work
 
