@@ -1,215 +1,135 @@
+# Kubernetes GitOps Homelab
+
+An architecture and operating-model case study for a multi-environment
+Kubernetes homelab. The portfolio signal is the deployment system around the
+workloads: isolated failure domains, ordered GitOps reconciliation, security
+boundaries, observability, and a rebuild-first recovery strategy.
+
 > [!IMPORTANT]
-> **Historical repository**
->
-> This repository documents an earlier Kubernetes homelab design and is no
-> longer the active configuration. Current work has moved to
-> [T-Py-T/nix-homelab](https://github.com/T-Py-T/nix-homelab). The material
-> below is retained as historical design context; statuses, hardware details,
-> deployment steps, and roadmap items should not be read as current operations.
+> The current default-branch tree is documentation-only. Live Argo CD
+> applications, Helm values, hostnames, secrets, and environment-specific
+> deployment manifests now remain in private downstream repositories. Earlier
+> public commit history contains an archival implementation snapshot from
+> before that boundary; it must not be interpreted as current infrastructure.
+
+## Why this project matters
+
+Cloud deployment examples are easy to create once and much harder to operate
+repeatably. This design asks a stronger question:
+
+**Can a cluster be rebuilt, validated, promoted, observed, and rolled back
+through the same documented path every time?**
+
+The public case study shows the intended answer:
+
+- separate cluster lifecycle from workload configuration;
+- reconcile platform, monitoring, and application layers in dependency order;
+- test changes in disposable environments before promotion;
+- keep current secrets and environment endpoints outside public source; and
+- treat recovery as recreation from declared state instead of manual repair.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Cluster bootstrap] --> B[Networking and storage checks]
+    B --> C[Argo CD bootstrap]
+    C --> D[Platform services]
+    D --> E[Monitoring and policy]
+    E --> F[Applications]
+    F --> G[Health and reconciliation checks]
+
+    H[Private environment configuration] --> C
+    H --> D
+    H --> E
+    H --> F
+```
+
+| Layer | Responsibility | Public evidence boundary |
+| --- | --- | --- |
+| Cluster | Distribution, node lifecycle, CNI, storage, and DNS | Architecture and operating contract |
+| GitOps | Argo CD bootstrap, projects, sync ordering, and promotion | Current live definitions remain private |
+| Platform | Ingress, identity, secrets, and policy | Service choices and dependency model |
+| Observability | Metrics, dashboards, logs, and alert routing | Verification approach and failure signals |
+| Applications | Namespaces, routes, values, and data services | Current workload inventory is intentionally omitted |
+
+## Deployment contract
+
+A deployment is not complete merely because manifests apply. The intended
+operating sequence is:
+
+1. Create or rebuild a cluster from a known configuration.
+2. Verify node readiness, networking, DNS, ingress, and storage prerequisites.
+3. Bootstrap Argo CD and register only the repositories required for the target
+   environment.
+4. Reconcile platform services before monitoring and application workloads.
+5. Validate sync health, workload readiness, service reachability, and secret
+   references.
+6. Promote the same structure with bounded environment overrides.
+7. Roll back through Git, or recreate the cluster when platform state is no
+   longer trustworthy.
+
+This is an operating contract, not a claim that every step is automated or has
+completed successfully. The public repository does not claim current uptime,
+production traffic, successful reconciliation, or a completed recovery drill.
+
+## Cluster strategy
+
+| Environment | Primary use | Change posture |
+| --- | --- | --- |
+| Development | Fast infrastructure and workload experiments | Disposable; optimize for feedback |
+| Staging | Production-like validation | Rehearse upgrades and recovery before promotion |
+| Data | Stateful services and storage experiments | Prioritize backup and restore behavior |
+| Production | Stable end-user workloads | Prefer declared replacement over in-place drift |
+
+The “no in-place upgrades” strategy is deliberate: trial a new Kubernetes or
+node image in an isolated cluster, validate it, then move workloads while the
+previous cluster remains the rollback boundary.
+
+## Platform decisions
+
+| Concern | Selected approach | Reasoning |
+| --- | --- | --- |
+| Lightweight Kubernetes | K3s and Talos experiments | Low-cost clusters with different lifecycle tradeoffs |
+| Reconciliation | Argo CD app-of-apps | Visible dependency ordering and Git-backed rollback |
+| Networking | Cilium with ingress and service-mesh experiments | Policy, observability, and load-balancing primitives |
+| Secrets | Vault plus External Secrets | Secret material stays outside Git while references remain declarative |
+| Policy | Kyverno | Admission-time guardrails expressed as Kubernetes resources |
+| Metrics and logs | Prometheus, Grafana, and Loki/Elastic experiments | Make platform and workload failures inspectable |
+
+## Evidence status
+
+The historical repository record supports that the architecture was expressed
+as versioned desired state and later split into separate repositories. It does
+not prove that a cluster reached or maintained that state. No sanitized current
+deployment logs, test reports, recovery timings, or telemetry are retained in
+this public tree.
+
+The next portfolio-grade artifact is a sanitized recovery-drill bundle with:
+
+- exact cluster and tool versions;
+- bootstrap and validation commands;
+- failure criteria and rollback decision;
+- timing from empty cluster to healthy reconciliation; and
+- redacted raw command output.
 
-# Homelab - K3s GitOps Platform (Historical)
+Until that artifact exists, judge this repository as an architecture and
+operating-model case study rather than a production-operations claim.
 
-This repository preserved an earlier GitOps platform design for K3s. It is not
-maintained as a current or production-ready deployment.
+## Review checklist
 
----
+- Are ownership and security boundaries explicit?
+- Is deployment order deterministic?
+- Can an environment be recreated without undocumented console work?
+- Are validation and rollback part of the design?
+- Are intended capabilities separated from retained evidence?
 
-## Overview
+## Related public work
 
-This homelab documented a **multi-repository GitOps pattern** with separate
-repositories for platform, monitoring, and applications, orchestrated by
-ArgoCD using an app-of-apps pattern. It served as a design for testing services,
-container hardening, and DevSecOps practices.
+- [`nix-homelab`](https://github.com/T-Py-T/nix-homelab) covers reproducible
+  host and service configuration for the successor environment.
+- [`devops-install-scripts`](https://github.com/T-Py-T/devops-install-scripts)
+  contains reusable CI/CD and deployment building blocks used across public
+  cloud case studies.
 
-### Historical Security References
-
-The design notes referenced these sources for service testing and container
-hardening:
-
-- [**Repo1**](https://repo1.dso.mil/) - DoD approved charts and applications
-- [**Ironbank**](https://ironbank.dso.mil/) - Hardened container registry
-
----
-
-## Architecture Overview
-
-### Cluster Strategy: "No In-Place Upgrades"
-
-Instead of one monolithic cluster, the design used **multiple single-purpose
-clusters** to explore isolation, security, and maintainability. Its documented
-high-availability approach is historical and is not the current homelab state.
-
-For development and staging, the design considered single-node clusters for
-testing newer cluster operating systems such as Talos or K3D before migration,
-while retaining the previous cluster as a fallback.
-
-| Cluster | Purpose | Historical status at last update | Nodes |
-|:--------|:--------|:-------|:------|
-| **Prod** | End-user applications (stateless) | 🔄 Planned (OpenShift) | 3 control + 6 workers |
-| **Staging** | Application testing & validation | ✅ Running (Talos/Omni) | 2 control + 4 workers |
-| **Data** | Databases & persistent storage | 🔄 Planned (K3s) | 2 control + 2 workers |
-| **Dev** | Development & container testing | ✅ Running (K3s) | 1 control + 2 workers |
-
-### Why This Design Was Explored
-
-- **Blast radius containment** - Issues don't affect other environments
-- **Independent scaling** - Right-size each cluster for its workload
-- **Easy disaster recovery** - Rebuild clusters from code, restore data from backups
-- **Technology diversity** - Test different platforms (OpenShift, Talos, K3s)
-
----
-
-## Documented Hardware Setup
-
-**Historical philosophy**: inexpensive, small, upgradeable refurbished business PCs
-
-### Base Hardware Stack
-
-- **HP EliteDesk 800 G5 Mini** (Control Planes): i5-6400T, 16GB RAM, 240GB SSD
-- **HP EliteDesk 800 G2 Mini** (Workers): i3-6100T, 8-16GB RAM, 240GB SSD
-- **Documented cost**: ~$100-150 per node (refurbished)
-- **Documented upgrade path**: RAM expandable for larger workloads
-
-### Cluster Specifications
-
-<details>
-<summary><strong>Historical Production Cluster Plan (OpenShift)</strong></summary>
-
-**Purpose**: Mission-critical applications with enterprise support
-
-- **Control Plane**: 3x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
-- **Workers**: 6x HP EliteDesk 800 G2 Mini (i5-6400T/16GB/240GB)
-- **Features**: HA, automated failover, enterprise monitoring
-
-</details>
-
-<details>
-<summary><strong>Historical Staging Cluster State (Talos/Omni)</strong></summary>
-
-**Purpose**: Pre-production testing and validation
-
-- **Control Plane**: 2x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
-- **Workers**: 4x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
-- **Features**: Immutable OS, declarative configuration
-
-</details>
-
-<details>
-<summary><strong>Historical Data Cluster Plan (K3s)</strong></summary>
-
-**Purpose**: Centralized databases and shared storage
-
-- **Control Plane**: 2x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
-- **Workers**: 2x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
-- **Storage**: Synology DS224+ NAS with CSI integration
-
-</details>
-
-<details>
-<summary><strong>Historical Development Cluster State (K3s)</strong></summary>
-
-**Purpose**: Development, testing, and experimentation
-
-- **Control Plane**: 1x HP EliteDesk 800 G5 Mini (i5-6400T/16GB/240GB)
-- **Workers**: 2x HP EliteDesk 800 G2 Mini (i3-6100T/8GB/240GB)
-- **Features**: Lightweight, fast iteration, disposable workloads
-
-</details>
-
----
-
-## Historical Deployment Strategy
-
-### Multi-Repository GitOps Workflow
-
-#### Historical Cluster Lifecycle — Deployment Order (Top → Bottom)
-
-Each repository was intended to be managed as a separate ArgoCD project using
-an app-of-apps pattern.
-
-| Logo | Purpose|
-|:----:|:-----|
-| [homelab-gitops](https://github.com/T-Py-T/homelab-gitops)  | ArgoCD bootstrap + cluster scripts |
-| [homelab-platform](https://github.com/T-Py-T/homelab-platform) | Core infrastructure (Istio, Vault, Keycloak) |
-| [homelab-monitoring](https://github.com/T-Py-T/homelab-monitoring) | Observability (Prometheus, Grafana, ELK) |
-| [homelab-apps](https://github.com/T-Py-T/homelab-applications) | End-user applications |
-
-#### Intended Benefits of This Approach
-
-- Dependency Control: Platform services deploy before apps that need them
-- Team Separation: Different teams can own different repositories
-- Independent Releases: Update monitoring without touching applications
-- Security Boundaries: Separate access controls per repository type
-- Scalability: Add new app repos without touching core infrastructure
-
-## 🔧 Documented Technology Stack
-
-### Core Platform
-
-| Logo | Name | Description |
-|:----:|:-----|:-----------|
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/kubernetes.svg"> | [K3s](https://k3s.io/) | Lightweight Kubernetes - easy to install, half the memory, all in a binary < 100MB |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cilium.svg"> | [Cilium](https://cilium.io/) | eBPF-based networking, security, and observability |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/argo-cd.svg"> | [ArgoCD](https://argo-cd.readthedocs.io/) | Declarative GitOps continuous delivery |
-
-### Platform Services
-
-| Logo | Name | Description |
-|:----:|:-----|:-----------|
-| <img width="32" style="filter: invert(51%) sepia(86%) saturate(2331%) hue-rotate(195deg) brightness(97%) contrast(101%);" src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/istio.svg"> | [Istio](https://istio.io/) | Service mesh for security, observability, and traffic management |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/vault.svg"> | [HashiCorp Vault](https://www.vaultproject.io/) | Secrets management and PKI |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/keycloak.svg"> | [Keycloak](https://www.keycloak.org/) | Identity and access management |
-| <img width="32" src="https://www.svgrepo.com/download/477066/lock.svg"> | [External Secrets](https://external-secrets.io/) | Vault integration for K8s secrets |
-| <img width="32" src="https://avatars.githubusercontent.com/u/68448710?s=200&v=4">| [Kyverno](https://kyverno.io/) | Policy engine for security and governance |
-
-### Monitoring Services
-
-| Logo | Name | Description |
-|:----:|:-----|:-----------|
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/grafana.svg"> | [Grafana](https://grafana.com/) | The open observability platform |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/prometheus.svg"> | [Prometheus](https://prometheus.io/) | An open-source monitoring system with a dimensional data model, flexible query language, efficient time series database and modern alerting approach |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/elastic.svg"> | [Elastic Stack](https://www.elastic.co/) | Centralized logging and analytics |
-
-### User Applications
-
-| Logo | Name | Description |
-|:----:|:-----|:-----------|
-| <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/commafeed.svg"> | [Commafeed](https://www.commafeed.com/#/welcome) | Bloat free RSS feed reader |
-| <img width="32" src="https://www.svgrepo.com/download/499807/home-page.svg"> | [Homepage](https://github.com/gethomepage/homepage) | My customized portal to my homelab & internet |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/n8n.svg"> | [n8n](https://n8n.io/) | Secure, AI-native workflow automation |
-| <img width="32" style="filter: invert(54%) sepia(94%) saturate(749%) hue-rotate(359deg) brightness(104%) contrast(101%);" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wallabag.svg"> | [Wallabag](https://wallabag.org/) | Save articles & posts from the web for storage & reading later |
-| <img width="32" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/linkding.svg"> | [Linkding](https://github.com/sissbruecker/linkding) | Bookmark manager with tagging and search |
-
-
-## Historical Roadmap (Not Active)
-
-The following items were planning notes in this repository and are not current
-commitments. See [nix-homelab](https://github.com/T-Py-T/nix-homelab) for the
-active configuration and documentation.
-
-### Version Upgrades
-
-Using single node clusters to test version updates of each OS provider, K3s, Talos, CRC, etc.
-
-### Enhanced Platform
-
-Cert Manager + Cloudflare: Automated TLS certificate management
-External DNS: Automatic DNS record management for services
-CloudNativePG: PostgreSQL operator for database workloads
-
-### Advanced Observability
-
-Thanos: Long-term metrics storage and global query view
-OpenTelemetry: Distributed tracing across all services
-
-### Production Operations
-
-Flagger: Automated canary deployments and progressive delivery
-Velero: Comprehensive backup and disaster recovery
-Renovate: Automated dependency updates with testing
-
-## Current Project
-
-For current code, documentation, and issue context, use
-[T-Py-T/nix-homelab](https://github.com/T-Py-T/nix-homelab). This repository
-remains available as a historical reference only.
+This repository does not currently include a repository-wide license file.
