@@ -32,6 +32,17 @@ assert lock["features"][expected_feature]["resolved"] == (
     "ghcr.io/devcontainers/features/kubectl-helm-minikube@"
     "sha256:bbe8adf6b37fff8c67412ab0a4579f4c2f30bbaba1d9a5cebd9e38bade54025b"
 )
+
+package = json.loads(Path("package.json").read_text())
+assert package["devDependencies"] == {"@devcontainers/cli": "0.89.0"}
+
+package_lock = json.loads(Path("package-lock.json").read_text())
+locked_cli = package_lock["packages"]["node_modules/@devcontainers/cli"]
+assert locked_cli["version"] == "0.89.0"
+assert locked_cli["integrity"] == (
+    "sha512-LzaoOGKQ/Zql6PsiZ4hVIYVZagzWkD65aG/1ou5/Kly5Y1PtjLg1yn7qu+"
+    "LZCzVoAl6DZZ/pbz8qOO4RLNlqMg=="
+)
 PY
 
 bash -n .devcontainer/setup.sh scripts/validate.sh
