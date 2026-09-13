@@ -3,6 +3,10 @@
 This repository documents the architecture and operating workflow for a
 multi-environment Kubernetes homelab managed with Argo CD.
 
+It is written for homelab operators who want a public, reusable GitOps design
+without publishing the hostnames, credentials, or application values from a
+running home network.
+
 The environment-specific application definitions, Helm values, hostnames, and
 secrets live in private downstream repositories. Keeping them separate makes
 the architecture public without exposing the configuration of a running home
@@ -88,6 +92,10 @@ for designing a GitOps repository split or reviewing an existing one:
 - document health checks before automating promotion; and
 - rehearse restoration in a disposable environment.
 
+The [rebuild runbook](docs/rebuild-runbook.md) turns those principles into a
+generic sequence of checks that can be adapted by a private environment
+repository.
+
 The included dev container provides a small documentation workspace:
 
 ```sh
@@ -108,6 +116,10 @@ Before promoting a downstream environment, verify:
 - required secret references resolve without exposing values;
 - workloads pass readiness checks and expected routes respond; and
 - rollback or rebuild instructions have been exercised for the change.
+
+This public repository cannot run those checks by itself because it deliberately
+contains no cluster endpoint, environment manifests, secret references, or
+application inventory.
 
 ## Related repositories
 
