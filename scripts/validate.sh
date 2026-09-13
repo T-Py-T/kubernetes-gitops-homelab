@@ -75,6 +75,11 @@ for path in workflows:
     )
 PY
 
-git diff --check
-git diff --cached --check
-git diff-tree --check --no-commit-id --root -r HEAD
+if [[ -n "${GITHUB_BASE_REF:-}" ]] &&
+  git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" >/dev/null; then
+  git diff --check "origin/${GITHUB_BASE_REF}...HEAD"
+else
+  git diff --check
+  git diff --cached --check
+  git diff-tree --check --no-commit-id --root -r HEAD
+fi
