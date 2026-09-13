@@ -1,0 +1,7 @@
+{
+  "name": "kubernetes-gitops-homelab-validation",
+  "private": true,
+  "devDependencies": {
+    "@devcontainers/cli": "0.89.0"
+  }
+}
