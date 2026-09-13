@@ -96,7 +96,9 @@ The [rebuild runbook](docs/rebuild-runbook.md) turns those principles into a
 generic sequence of checks that can be adapted by a private environment
 repository.
 
-The included dev container provides a small documentation workspace:
+The included dev container provides a small documentation and manifest-authoring
+workspace with Kubernetes 1.37, Helm 4.3, and the Kustomize support built into
+`kubectl`:
 
 ```sh
 git clone https://github.com/T-Py-T/kubernetes-gitops-homelab.git
@@ -105,6 +107,19 @@ code .
 ```
 
 Open the folder in VS Code and choose **Reopen in Container** when prompted.
+The container does not start a cluster or connect to a downstream environment.
+It verifies the pinned command-line tools during setup.
+
+Validate the public repository itself from macOS or Linux. The local checks
+require Python 3, ShellCheck, and pre-commit:
+
+```sh
+./scripts/validate.sh
+pre-commit run --all-files
+```
+
+The pull-request gate repeats those checks, lints the Markdown documentation,
+and builds the development container from its pinned image and feature lock.
 
 ## Validation checklist
 
