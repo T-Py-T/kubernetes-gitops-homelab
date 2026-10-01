@@ -1,0 +1,18 @@
+# Tip-cite bank: base main `2d6f4a5b` (Ship 283) + this PR pending Steward resolve;
+# provenance only; tip ≠ READY — no invented READY claims, scores, bake-off results,
+# or operational authorization.
+# Discoverability: [SECURITY.md](../SECURITY.md), [docs/HIREABILITY.md](../docs/HIREABILITY.md).
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
