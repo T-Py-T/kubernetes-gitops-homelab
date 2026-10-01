@@ -76,7 +76,7 @@ see [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 | --- | --- |
 | [../README.md](../README.md) | Architecture overview and using this repository |
 | [rebuild-runbook.md](rebuild-runbook.md) | Generic cluster rebuild sequence |
-| [../SECURITY.md](../SECURITY.md) | Reporting sensitive material in this public repo |
+| [../SECURITY.md](../SECURITY.md) | Scope, reporting path, and sensitive-finding handling |
 | [../THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) | Third-party and historical notices |
 
 Related public repositories: [`nix-homelab`](https://github.com/T-Py-T/nix-homelab),
