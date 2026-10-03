@@ -12,8 +12,7 @@ secrets live in private downstream repositories. Keeping them separate makes
 the architecture public without exposing the configuration of a running home
 network.
 
-**Discoverability:** hireability summary, suggested GitHub topics, and license
-pointers live in [docs/HIREABILITY.md](docs/HIREABILITY.md). Report sensitive
+Report sensitive
 findings through [SECURITY.md](SECURITY.md).
 
 ## Architecture
