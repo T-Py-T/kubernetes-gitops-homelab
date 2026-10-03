@@ -52,7 +52,6 @@ Response is best-effort for this public case study; there is no guaranteed SLA.
 | Document | Role |
 | --- | --- |
 | [README.md](README.md) | Architecture overview and local validation |
-| [docs/HIREABILITY.md](docs/HIREABILITY.md) | Discoverability and reviewer orientation |
 | [docs/rebuild-runbook.md](docs/rebuild-runbook.md) | Generic rebuild sequence (non-secret) |
 | [LICENSE](LICENSE) | License for current documentation |
 | [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Historical and third-party material |

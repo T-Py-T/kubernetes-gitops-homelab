@@ -1,7 +1,7 @@
 # Tip-cite bank: base main `2d6f4a5b` (Ship 283) + this PR pending Steward resolve;
-# provenance only; tip ≠ READY — no invented READY claims, scores, bake-off results,
+# provenance only; no invented READY claims, scores, bake-off results,
 # or operational authorization.
-# Discoverability: [SECURITY.md](../SECURITY.md), [docs/HIREABILITY.md](../docs/HIREABILITY.md).
+# Discoverability: [SECURITY.md](../SECURITY.md).
 
 version: 2
 updates:
