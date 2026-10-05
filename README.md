@@ -1,19 +1,39 @@
 # Kubernetes GitOps Homelab
 
-This repository documents the architecture and operating workflow for a
-multi-environment Kubernetes homelab managed with Argo CD.
+[![Validate](https://github.com/T-Py-T/kubernetes-gitops-homelab/actions/workflows/validate.yml/badge.svg)](https://github.com/T-Py-T/kubernetes-gitops-homelab/actions/workflows/validate.yml)
 
-It is written for homelab operators who want a public, reusable GitOps design
-without publishing the hostnames, credentials, or application values from a
-running home network.
+**A public blueprint for running a multi-environment Kubernetes homelab with Argo CD, without publishing your home network.**
 
-The environment-specific application definitions, Helm values, hostnames, and
-secrets live in private downstream repositories. Keeping them separate makes
-the architecture public without exposing the configuration of a running home
-network.
+This repository is the *design*: layers, sync order, promotion and rebuild
+rules, written so you can reuse them. The *environment* (application
+definitions, Helm values, hostnames and secrets) lives in private downstream
+repositories. Splitting them this way lets the architecture be public while
+the running configuration stays private.
 
-Report sensitive
-findings through [SECURITY.md](SECURITY.md).
+[Architecture](#architecture) ·
+[Getting started](#getting-started) ·
+[Walk-through](#walk-through-plan-a-rebuild) ·
+[Design choices](#platform-choices) ·
+[Contributing](#contributing)
+
+> **Docs-only by design.** The default branch contains no manifests, cluster
+> endpoints, secret references or application inventory. There is no live
+> demo and no screenshots, because there is nothing public to capture. The
+> Mermaid diagram below is the visual.
+
+## Why it's worth a read
+
+- **A clean public/private split.** Reusable design in public; every
+  hostname, value and secret in private environment repositories.
+- **Layered on purpose.** Cluster, GitOps, platform, observability and
+  applications each change on their own schedule.
+- **Rebuild over repair.** New Kubernetes or node-image versions land in an
+  isolated cluster. The old cluster stays up as the rollback boundary.
+- **A runbook you can copy.** [`docs/rebuild-runbook.md`](docs/rebuild-runbook.md)
+  turns the principles into an ordered, evidence-based rebuild checklist.
+- **A pinned authoring workspace.** The dev container ships kubectl 1.37,
+  Helm 4.3 and built-in Kustomize from a digest-pinned image, and never
+  starts a cluster.
 
 ## Architecture
 
@@ -32,9 +52,6 @@ flowchart LR
     H --> F
 ```
 
-The system is split into layers so that cluster lifecycle, platform services,
-and workloads can change independently:
-
 | Layer | Responsibility |
 | --- | --- |
 | Cluster | Kubernetes distribution, nodes, networking, storage, and DNS |
@@ -43,19 +60,63 @@ and workloads can change independently:
 | Observability | Metrics, dashboards, logs, and alert routing |
 | Applications | Namespaces, routes, application values, and data services |
 
-## Deployment flow
+## Getting started
 
-The intended path for a new or rebuilt environment is:
+### Read it
 
-1. Create the cluster from a known machine or cloud configuration.
-2. Check node readiness, networking, DNS, ingress, and storage.
-3. Bootstrap Argo CD and register the repositories required by that environment.
-4. Reconcile platform services before monitoring and application workloads.
-5. Check sync health, workload readiness, service routes, and secret references.
-6. Promote changes through environment-specific values rather than copying
-   whole application definitions.
-7. Roll back through Git, or rebuild the cluster when its platform state is no
-   longer trustworthy.
+Start with the [Architecture](#architecture), then the
+[rebuild runbook](docs/rebuild-runbook.md).
+
+### Validate the repository
+
+On macOS or Linux, with Python 3, ShellCheck and
+[pre-commit](https://pre-commit.com/):
+
+```sh
+git clone https://github.com/T-Py-T/kubernetes-gitops-homelab.git
+cd kubernetes-gitops-homelab
+./scripts/validate.sh
+pre-commit run --all-files
+```
+
+`validate.sh` checks that the dev container stays pinned (image digest,
+feature lock, CLI version, no `latest`, no piped installs, no privileged
+mode), that workflows trigger only on `pull_request`, and that the diff has
+no whitespace errors. Pull requests also lint the Markdown and build the dev
+container.
+
+### Open the authoring workspace
+
+```sh
+code .
+```
+
+Choose **Reopen in Container** when VS Code prompts. Setup confirms
+`kubectl v1.37.0`, `Helm v4.3.0` and `kubectl kustomize`. The container
+doesn't start a cluster or connect to any environment.
+
+## Walk-through: plan a rebuild
+
+Use the runbook to dry-run a cluster replacement on paper before you touch a
+real environment:
+
+1. **Record the change boundary.** Note current versions, Git revisions,
+   required backups and how to send traffic back.
+2. **Create an isolated cluster.** Leave the old one running, then check
+   `kubectl get nodes -o wide` before any GitOps step.
+3. **Check the foundation**, in order: networking, DNS, ingress, then
+   storage, using small synthetic workloads.
+4. **Bootstrap Argo CD** from your pinned version and register only the
+   repositories this cluster needs.
+5. **Reconcile by layer**: platform controllers, then observability, then
+   stateless apps, then stateful services and restored data.
+6. **Exercise recovery** on a bounded synthetic dataset.
+7. **Promote or roll back**, and keep the failure log for the next
+   rehearsal.
+
+The cluster commands in the runbook are placeholders for your private
+environment repository. This public repository can't run them, because it
+deliberately has no cluster to point at.
 
 ## Environments
 
@@ -66,9 +127,9 @@ The intended path for a new or rebuilt environment is:
 | Data | Stateful-service and storage experiments |
 | Production | Stable workloads promoted from the same GitOps structure |
 
-New Kubernetes or node-image versions are introduced in an isolated cluster.
-Applications move only after the replacement environment passes its health
-checks, leaving the previous cluster available as the rollback boundary.
+Changes are promoted through environment-specific values, not by copying
+whole application definitions. Rollback goes through Git, or through a
+rebuild when the platform state is no longer trustworthy.
 
 ## Platform choices
 
@@ -81,70 +142,49 @@ checks, leaving the previous cluster available as the rollback boundary.
 | Policy | Kyverno admission policies |
 | Metrics and logs | Prometheus, Grafana, and Loki/Elastic experiments |
 
-These choices describe the operating model. Concrete versions and
-environment-specific values belong to the downstream deployment repositories.
+These describe the operating model. Exact versions and values belong in the
+private environment repositories.
 
-## Using this repository
+## Design principles
 
-The current default branch is documentation-only. Use it as the starting point
-for designing a GitOps repository split or reviewing an existing one:
+- Keep cluster creation separate from application reconciliation.
+- Make service dependencies and sync waves explicit.
+- Keep secret values out of Git while keeping declarative references.
+- Write down health checks before automating promotion.
+- Rehearse restoration in a disposable environment.
 
-- keep cluster creation separate from application reconciliation;
-- make service dependencies and sync waves explicit;
-- keep secret values outside Git while retaining declarative references;
-- document health checks before automating promotion; and
-- rehearse restoration in a disposable environment.
+## Promotion checklist
 
-The [rebuild runbook](docs/rebuild-runbook.md) turns those principles into a
-generic sequence of checks that can be adapted by a private environment
-repository.
-
-The included dev container provides a small documentation and manifest-authoring
-workspace with Kubernetes 1.37, Helm 4.3, and the Kustomize support built into
-`kubectl`:
-
-```sh
-git clone https://github.com/T-Py-T/kubernetes-gitops-homelab.git
-cd kubernetes-gitops-homelab
-code .
-```
-
-Open the folder in VS Code and choose **Reopen in Container** when prompted.
-The container does not start a cluster or connect to a downstream environment.
-It verifies the pinned command-line tools during setup.
-
-Validate the public repository itself from macOS or Linux. The local checks
-require Python 3, ShellCheck, and pre-commit:
-
-```sh
-./scripts/validate.sh
-pre-commit run --all-files
-```
-
-The pull-request gate repeats those checks, lints the Markdown documentation,
-and builds the development container from its pinned image and feature lock.
-
-## Validation checklist
-
-Before promoting a downstream environment, verify:
+Before promoting a downstream environment, check that:
 
 - every node reports ready;
-- DNS, ingress, networking, and storage checks pass;
+- DNS, ingress, networking and storage checks pass;
 - Argo CD applications are synchronized and healthy;
 - required secret references resolve without exposing values;
 - workloads pass readiness checks and expected routes respond; and
 - rollback or rebuild instructions have been exercised for the change.
 
-This public repository cannot run those checks by itself because it deliberately
-contains no cluster endpoint, environment manifests, secret references, or
-application inventory.
-
 ## Related repositories
 
-- [`nix-homelab`](https://github.com/T-Py-T/nix-homelab) manages reproducible
-  host and service configuration for the successor environment.
-- [`devops-install-scripts`](https://github.com/T-Py-T/devops-install-scripts)
-  contains reusable CI/CD and deployment setup scripts.
+- [`nix-homelab`](https://github.com/T-Py-T/nix-homelab): reproducible host
+  and service configuration for the successor environment
+- [`devops-install-scripts`](https://github.com/T-Py-T/devops-install-scripts):
+  reusable CI/CD and deployment setup scripts
+
+The private environment repositories aren't linked or described here.
+
+## Contributing
+
+Improvements to the design, the runbook or the checklists are welcome, as
+long as they stay environment-neutral.
+
+1. Fork the repository and branch from `main`.
+2. Never add hostnames, IPs, kubeconfigs, tokens or real secret references.
+3. Run `./scripts/validate.sh` and `pre-commit run --all-files`.
+4. Open a pull request. CI also runs ShellCheck, markdownlint and a dev
+   container build.
+
+Report sensitive findings privately through [SECURITY.md](SECURITY.md).
 
 ## License
 
