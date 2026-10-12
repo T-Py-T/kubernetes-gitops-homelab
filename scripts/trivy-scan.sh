@@ -9,7 +9,7 @@ if ! command -v trivy >/dev/null 2>&1; then
   exit 0
 fi
 
-severity=(--severity HIGH,CRITICAL)
+severity=(--severity "HIGH,CRITICAL")
 scan_flags=(--scanners vuln --ignore-unfixed)
 
 collect_images() {
