@@ -45,7 +45,7 @@ assert locked_cli["integrity"] == (
 )
 PY
 
-bash -n .devcontainer/setup.sh scripts/validate.sh
+bash -n .devcontainer/setup.sh scripts/validate.sh scripts/validate-manifests.sh
 
 if grep -EnR \
   '(^|[^[:alnum:]_])(latest|master)([^[:alnum:]_]|$)|curl[^|]*\|[[:space:]]*(ba)?sh|postAttachCommand|"privileged"[[:space:]]*:[[:space:]]*true' \
@@ -85,6 +85,38 @@ for path in workflows:
         f"{path}: hosted workflows may trigger only on pull_request; got {events}"
     )
 PY
+
+python3 - <<'PY'
+import re
+from pathlib import Path
+
+legacy_paths = (
+    Path("apps"),
+    Path(".github/workflows/flux-updates.yaml"),
+)
+for path in legacy_paths:
+    assert not path.exists(), f"remove dead manifest path: {path}"
+
+skip_parts = {".github", "node_modules", ".git"}
+for path in sorted(Path(".").rglob("*")):
+    if not path.is_file():
+        continue
+    if path.suffix not in {".yaml", ".yml"}:
+        continue
+    if skip_parts.intersection(path.parts):
+        continue
+    content = path.read_text(encoding="utf-8")
+    if re.search(r"^apiVersion:\s", content, re.MULTILINE) and re.search(
+        r"^kind:\s", content, re.MULTILINE
+    ):
+        raise AssertionError(f"stray Kubernetes manifest: {path}")
+PY
+
+if command -v kubectl >/dev/null 2>&1 && command -v helm >/dev/null 2>&1; then
+  ./scripts/validate-manifests.sh
+else
+  printf 'Skipping manifest validation (kubectl and helm not installed).\n'
+fi
 
 if [[ -n "${GITHUB_BASE_REF:-}" ]] &&
   git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" >/dev/null; then
