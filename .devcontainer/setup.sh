@@ -11,5 +11,8 @@ test "$actual_kubectl" = "$expected_kubectl"
 test "$actual_helm" = "$expected_helm"
 kubectl kustomize --help >/dev/null
 
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"${repo_root}/scripts/validate-manifests.sh"
+
 printf 'kubectl %s, Helm %s, and kubectl kustomize are ready.\n' \
   "$actual_kubectl" "$actual_helm"
