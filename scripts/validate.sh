@@ -45,7 +45,10 @@ assert locked_cli["integrity"] == (
 )
 PY
 
-bash -n .devcontainer/setup.sh scripts/validate.sh scripts/validate-manifests.sh
+bash -n .devcontainer/setup.sh scripts/validate.sh scripts/validate-manifests.sh \
+  scripts/ci-install-kubernetes-tools.sh
+
+chmod +x scripts/ci-install-kubernetes-tools.sh scripts/validate-rendered-policy.py
 
 if grep -EnR \
   '(^|[^[:alnum:]_])(latest|master)([^[:alnum:]_]|$)|curl[^|]*\|[[:space:]]*(ba)?sh|postAttachCommand|"privileged"[[:space:]]*:[[:space:]]*true' \
@@ -97,7 +100,7 @@ legacy_paths = (
 for path in legacy_paths:
     assert not path.exists(), f"remove dead manifest path: {path}"
 
-skip_parts = {".github", "node_modules", ".git"}
+skip_parts = {".github", "node_modules", ".git", "fixtures"}
 for path in sorted(Path(".").rglob("*")):
     if not path.is_file():
         continue
@@ -112,11 +115,20 @@ for path in sorted(Path(".").rglob("*")):
         raise AssertionError(f"stray Kubernetes manifest: {path}")
 PY
 
+if ! command -v kubectl >/dev/null 2>&1 || ! command -v helm >/dev/null 2>&1; then
+  if [[ "${GITHUB_ACTIONS:-}" == 'true' ]] || [[ "${VALIDATE_INSTALL_TOOLS:-}" == '1' ]]; then
+    # shellcheck source=/dev/null
+    source ./scripts/ci-install-kubernetes-tools.sh
+  fi
+fi
+
 if command -v kubectl >/dev/null 2>&1 && command -v helm >/dev/null 2>&1; then
   ./scripts/validate-manifests.sh
 else
   printf 'Skipping manifest validation (kubectl and helm not installed).\n'
 fi
+
+python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 
 if [[ -n "${GITHUB_BASE_REF:-}" ]] &&
   git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" >/dev/null; then

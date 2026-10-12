@@ -13,6 +13,7 @@ kubectl kustomize --help >/dev/null
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 "${repo_root}/scripts/validate-manifests.sh"
+python3 -m unittest discover -s "${repo_root}/scripts/tests" -p 'test_*.py'
 
 printf 'kubectl %s, Helm %s, and kubectl kustomize are ready.\n' \
   "$actual_kubectl" "$actual_helm"

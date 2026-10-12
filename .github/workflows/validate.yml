@@ -16,6 +16,8 @@ jobs:
           fetch-depth: 0
 
       - name: Validate repository policy
+        env:
+          VALIDATE_INSTALL_TOOLS: "1"
         run: ./scripts/validate.sh
 
       - name: Lint shell scripts
