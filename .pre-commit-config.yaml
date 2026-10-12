@@ -8,6 +8,6 @@ repos:
         pass_filenames: false
       - id: shellcheck
         name: shellcheck
-        entry: shellcheck .devcontainer/setup.sh scripts/validate.sh
+        entry: shellcheck .devcontainer/setup.sh scripts/validate.sh scripts/trivy-scan.sh
         language: system
         pass_filenames: false
