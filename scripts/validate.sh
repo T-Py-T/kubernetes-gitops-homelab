@@ -11,7 +11,7 @@ from pathlib import Path
 config = json.loads(Path(".devcontainer/devcontainer.json").read_text())
 expected_image = (
     "mcr.microsoft.com/devcontainers/base:bookworm@"
-    "sha256:3aacff4130e6cf04709f9cab1d7a6d3e1cc4bff6202bc61611831a18d3755673"
+    "sha256:9a5942e64b35c5497c591b9bf177f4a3002d43440bf0a5e1a14fc34667b1a5c1"
 )
 expected_feature = (
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1.3.1"
@@ -45,7 +45,11 @@ assert locked_cli["integrity"] == (
 )
 PY
 
-bash -n .devcontainer/setup.sh scripts/validate.sh
+bash -n .devcontainer/setup.sh scripts/validate.sh scripts/trivy-scan.sh
+
+if [[ "${RUN_TRIVY_SCAN:-}" == "1" ]]; then
+  ./scripts/trivy-scan.sh
+fi
 
 if grep -EnR \
   '(^|[^[:alnum:]_])(latest|master)([^[:alnum:]_]|$)|curl[^|]*\|[[:space:]]*(ba)?sh|postAttachCommand|"privileged"[[:space:]]*:[[:space:]]*true' \
