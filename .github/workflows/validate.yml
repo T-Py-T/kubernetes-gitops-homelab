@@ -43,7 +43,7 @@ jobs:
           echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Build and test the development container
-        uses: devcontainers/ci@00115d9fb3fc4a15dc9b460cce0af467b77dbe21
+        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca
         with:
           push: never
           runCmd: .devcontainer/setup.sh
