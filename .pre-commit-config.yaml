@@ -1,4 +1,8 @@
 repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
   - repo: local
     hooks:
       - id: repository-policy
@@ -8,6 +12,6 @@ repos:
         pass_filenames: false
       - id: shellcheck
         name: shellcheck
-        entry: shellcheck .devcontainer/setup.sh scripts/validate.sh
+        entry: shellcheck .devcontainer/setup.sh scripts/ci-local.sh scripts/validate.sh
         language: system
         pass_filenames: false

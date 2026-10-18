@@ -2,6 +2,7 @@
   "name": "kubernetes-gitops-homelab-validation",
   "private": true,
   "devDependencies": {
-    "@devcontainers/cli": "0.89.0"
+    "@devcontainers/cli": "0.89.0",
+    "markdownlint-cli2": "0.17.2"
   }
 }
