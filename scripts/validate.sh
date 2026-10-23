@@ -34,7 +34,10 @@ assert lock["features"][expected_feature]["resolved"] == (
 )
 
 package = json.loads(Path("package.json").read_text())
-assert package["devDependencies"] == {"@devcontainers/cli": "0.89.0"}
+assert package["devDependencies"] == {
+    "@devcontainers/cli": "0.89.0",
+    "markdownlint-cli2": "0.24.0",
+}
 
 package_lock = json.loads(Path("package-lock.json").read_text())
 locked_cli = package_lock["packages"]["node_modules/@devcontainers/cli"]
@@ -42,6 +45,12 @@ assert locked_cli["version"] == "0.89.0"
 assert locked_cli["integrity"] == (
     "sha512-LzaoOGKQ/Zql6PsiZ4hVIYVZagzWkD65aG/1ou5/Kly5Y1PtjLg1yn7qu+"
     "LZCzVoAl6DZZ/pbz8qOO4RLNlqMg=="
+)
+
+locked_markdownlint = package_lock["packages"]["node_modules/markdownlint-cli2"]
+assert locked_markdownlint["version"] == "0.24.0"
+assert locked_markdownlint["integrity"] == (
+    "sha512-c5hU2MDoTlS230MLzdNlkIyxImXq5acxGKz4nYz4aDhH/2BgFtpsA7iK9/OoTHMgZ4FuR0wedTQA31K6Lp9I/Q=="
 )
 PY
 
