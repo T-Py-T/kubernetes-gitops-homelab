@@ -1,0 +1,6 @@
+apiVersion: v2
+name: queue-worker
+description: Synthetic queue worker chart for manifest validation
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
