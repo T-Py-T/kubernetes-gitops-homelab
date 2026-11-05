@@ -19,6 +19,9 @@ terraform/terraform.tfstate
 # Node
 node_modules/
 
+# Local validation tooling
+.cache/
+
 # Editor
 .vscode/
 
