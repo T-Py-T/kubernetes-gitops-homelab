@@ -3,6 +3,6 @@
   "private": true,
   "devDependencies": {
     "@devcontainers/cli": "0.89.0",
-    "markdownlint-cli2": "0.24.0"
+    "markdownlint-cli2": "0.24.1"
   }
 }
